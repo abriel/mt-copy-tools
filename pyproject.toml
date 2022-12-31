@@ -8,10 +8,13 @@ authors = ["Dmitry Pisarev <sorra7@gmail.com>"]
 mtput = 'mt_copy_tools.mtput:main'
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = ">=3.8,<3.12"
 paramiko = "^2.12.0"
 
 [tool.poetry.dev-dependencies]
+
+[tool.poetry.group.build.dependencies]
+pyinstaller = "^5.7.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
