@@ -2,6 +2,7 @@ import sys
 import hashlib
 from os import path
 from math import ceil
+from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor, wait
 from threading import get_ident
 from mt_copy_tools.sftp import SftpClientPool
@@ -59,7 +60,20 @@ def upload_part(sftp_client_fn, source_path, remote_path, start_position, length
 def progress(future):
   progress.total_done += future.result()
 
-  sys.stdout.write('\r{} % uploaded'.format(round(progress.total_done / progress.total_expected * 100, 2)))
+  elapsed_time = datetime.now() - progress.start_time
+  try:
+    speed = progress.total_done // elapsed_time.seconds
+  except ZeroDivisionError:
+    speed = 1
+  estimated_time = timedelta(seconds=((progress.total_expected - progress.total_done) // speed))
+
+  sys.stdout.write(
+    '\r{} % uploaded, {} KB/s, elapsed {}, estimated {} (hours:minutes:seconds)'.format(
+      round(progress.total_done / progress.total_expected * 100, 2),
+      round(speed / 1024, 2),
+      str(elapsed_time).split('.')[0],
+      estimated_time)
+  )
 
 def main():
   args = parse_args()
@@ -85,6 +99,7 @@ def main():
 
   with ThreadPoolExecutor(max_workers=args.threads) as executor:
     progress.total_expected += path.getsize(args.source_path)
+    progress.start_time = datetime.now()
     parts = ceil(path.getsize(args.source_path) / args.chunk_size)
     for i in range(parts):
       future = executor.submit(upload_part, sftp_client_pool.sticky, args.source_path, args.destination_path,
