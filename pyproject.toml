@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "mt-copy-tools"
+version = "0.1.0"
+description = "Multi-thread copy tools"
+authors = ["Dmitry Pisarev <sorra7@gmail.com>"]
+
+[tool.poetry.scripts]
+mtput = 'mt_copy_tools.mtput:main'
+
+[tool.poetry.dependencies]
+python = "^3.8"
+paramiko = "^2.12.0"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
