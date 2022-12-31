@@ -48,14 +48,15 @@ class SFTPClientNg(SFTPClient):
     to_be_created = []
     parent_folder = path
     while True:
+      if not parent_folder:
+        break
+
       try:
         self.stat(parent_folder)
         break
       except FileNotFoundError as e:
         to_be_created.append(parent_folder)
         parent_folder = os.path.dirname(parent_folder)
-        if not parent_folder:
-          break
 
     to_be_created.reverse()
     for dirname in to_be_created:
