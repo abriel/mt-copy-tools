@@ -1,6 +1,6 @@
 import sys
 import hashlib
-from os import path
+from os import path, get_terminal_size
 from math import ceil
 from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor, wait
@@ -72,7 +72,8 @@ def progress(future):
       round(progress.total_done / progress.total_expected * 100, 2),
       round(speed / 1024, 2),
       str(elapsed_time).split('.')[0],
-      estimated_time)
+      estimated_time
+    ).ljust(get_terminal_size().columns)
   )
 
 def main():
