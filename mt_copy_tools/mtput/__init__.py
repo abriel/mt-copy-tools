@@ -68,7 +68,7 @@ def progress(future):
   estimated_time = timedelta(seconds=((progress.total_expected - progress.total_done) // speed))
 
   sys.stdout.write(
-    '\r{} % uploaded, {} KB/s, elapsed {}, estimated {} (hours:minutes:seconds)'.format(
+    '\r{} % uploaded, {} KB/s, ELAPS {}, ETA {}'.format(
       round(progress.total_done / progress.total_expected * 100, 2),
       round(speed / 1024, 2),
       str(elapsed_time).split('.')[0],
