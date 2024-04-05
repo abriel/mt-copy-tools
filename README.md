@@ -43,15 +43,16 @@ $ pip install dist/mt_copy_tools-0.1.0-py3-none-any.whl
 ### Build for Windows (under Linux)
 
 Prerequisites:
-* wine
+* wine (with WINEARCH=win32 and custom WINEPREFIX)
 * [upx](https://github.com/upx/upx) installed in wine by the `C:/upx` path
-* python 3.8 installed in wine by the `C:/Python38` path
+* python 3.4.4 installed in wine by the `C:/Python34` path (https://www.python.org/downloads/release/python-344/)
 
 ```
+$ make wine_setup
 $ make build_exe
 ```
 
-Result binary is `dist/mtput.exe` which should work on Windows 7 and newer
+Result binary is `dist/mtput.exe` which should work on Windows XP and newer
 
 
 # Limitations

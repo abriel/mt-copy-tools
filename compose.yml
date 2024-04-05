@@ -1,0 +1,9 @@
+services:
+  dev:
+    build: .
+    user: 1000:100
+    volumes:
+      - .:/app
+      - /tmp:/.cache
+    command: "sh -c 'while [ true ]; do sleep 60; done'"
+    working_dir: /app
