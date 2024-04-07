@@ -1,4 +1,6 @@
+import binascii
 import os
+import shlex
 import struct
 from time import sleep
 from random import random
@@ -42,6 +44,20 @@ class SFTPClientNg(SFTPClient):
       if set(('Invalid parameter', 'No such file')) & set(e.args):
         self.extensions['check-file'] = ['sha1', 'md5']
 
+    try:
+      exec_channel = self.get_channel().get_transport().open_session()
+      exec_channel.exec_command("mt-copy-tools-cs -h")
+      exec_channel.recv(1024)
+      if exec_channel.recv_exit_status() == 0:
+        self.extensions['check-file-mtccs'] = ['md5', 'sha1', 'sha256', 'sha512']
+      exec_channel.close()
+    except SSHException:
+      pass
+
+    self.supported_integrity_algos = list(set(
+      self.extensions.get('check-file', []) + self.extensions.get('check-file-mtccs', [])
+    ))
+
     return version
 
   def mkdir_p(self, path):
@@ -70,18 +86,33 @@ class SFTPClientNg(SFTPClient):
 
 class SFTPFileNg(SFTPFile):
   def check_as_file(self, hash_algorithm, offset=0, length=0, block_size=0):
-    t, msg = self.sftp._request(
-      CMD_EXTENDED,
-      "check-file-name",
-      self.name,
-      hash_algorithm,
-      long(offset),
-      long(length),
-      block_size,
-    )
-    msg.get_text()  # alg
-    data = msg.get_remainder()
-    return data
+    if hash_algorithm in self.sftp.extensions.get('check-file', []):
+      t, msg = self.sftp._request(
+        CMD_EXTENDED,
+        "check-file-name",
+        self.name,
+        hash_algorithm,
+        long(offset),
+        long(length),
+        block_size,
+      )
+      msg.get_text()  # alg
+      data = msg.get_remainder()
+      return data
+
+    elif hash_algorithm in self.sftp.extensions.get('check-file-mtccs', []):
+      exec_channel = self.sftp.get_channel().get_transport().open_session()
+      exec_channel.exec_command("mt-copy-tools-cs -m {} -f {} -s {} -l {}".format(hash_algorithm, shlex.quote(self.name.decode()), offset, length))
+      out = exec_channel.recv(1024).strip()
+      if exec_channel.recv_exit_status() == 0:
+        return binascii.unhexlify(out)
+      else:
+        err = exec_channel.recv_stderr(4096)
+        raise Exception(err)
+      exec_channel.close()
+
+    else:
+      raise NotImplementedError("{} is not supported by server".format(hash_algorithm))
 
 class SftpClientPool():
   def __init__(self, host, port=22, username='', key=None, delay=None, pool_size=5):

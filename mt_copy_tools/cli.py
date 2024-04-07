@@ -23,7 +23,7 @@ def parse_args():
     '-i', '--key', type=str, default=path.join(environ.get('HOME', ''), '.ssh', 'id_rsa'),
     help='Ssh key for authorization')
   parser.add_argument(
-    '-a', '--algo', type=str, choices=('md5', 'sha1'), default=None,
+    '-a', '--algo', type=str, choices=('md5', 'sha1', 'sha256', 'sha512'), default=None,
     help='Algorithm for integrity check')
   parser.add_argument('-p', '--port', type=int, default=22, help='Port for sftp connection')
   parser.add_argument('-t', '--threads', type=int, default=10, help='Number of threads')

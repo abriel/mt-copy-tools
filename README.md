@@ -27,7 +27,8 @@ Thus, `mtput` knows what parts are uploaded already and where to resume from.
 
 Proftpd related issues: [1570](https://github.com/proftpd/proftpd/issues/1570), [1569](https://github.com/proftpd/proftpd/issues/1569)
 
-Compatible with openssh, without resume and checksum validation
+Compatible with openssh, without resume and checksum validation. This limitation is possible to overcome by using `mt-copy-tools-cs`.
+Compile it and place under a $PATH on a remote server, e.g. in `/usr/local/bin`.
 
 
 # Installation

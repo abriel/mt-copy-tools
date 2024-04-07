@@ -88,7 +88,7 @@ def main():
     sys.stderr.write(str(e) + '\n')
     sys.exit(1)
 
-  if args.algo and args.algo not in sftp_client_pool.pop().extensions.get('check-file', []):
+  if args.algo and args.algo not in sftp_client_pool.pop().supported_integrity_algos:
     sys.stderr.write('Server does not support {} for integrity check. Hence ignoring.\n'.format(args.algo))
     args.algo = None
 
