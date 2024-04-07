@@ -75,6 +75,7 @@ def progress(future):
       estimated_time
     ).ljust(get_terminal_size().columns)
   )
+  sys.stdout.flush()
 
 def main():
   args = parse_args()
