@@ -1,6 +1,7 @@
 import sys
 from os import environ, path
 from argparse import ArgumentParser
+from argparse import ArgumentDefaultsHelpFormatter
 
 def parse_remote_definition(definition):
   try:
@@ -17,8 +18,14 @@ def parse_remote_definition(definition):
 
   return username, destination_host, destination_path
 
+class MyParser(ArgumentParser):
+  def error(self, message):
+    sys.stderr.write("ERROR: {}\n\n".format(message))
+    self.print_help(sys.stderr)
+    sys.exit(2)
+
 def parse_args():
-  parser = ArgumentParser()
+  parser = MyParser(formatter_class=ArgumentDefaultsHelpFormatter)
   parser.add_argument(
     '-i', '--key', type=str, default=path.join(environ.get('HOME', ''), '.ssh', 'id_rsa'),
     help='Ssh key for authorization')
@@ -27,7 +34,7 @@ def parse_args():
     help='Algorithm for integrity check')
   parser.add_argument('-p', '--port', type=int, default=22, help='Port for sftp connection')
   parser.add_argument('-t', '--threads', type=int, default=10, help='Number of threads')
-  parser.add_argument('-d', '--start-delay', type=float, default=0.2, help='Delay of a thread start')
+  parser.add_argument('-d', '--start-delay', type=float, default=0.2, help='Delay of a thread start in seconds')
   parser.add_argument('-c', '--chunk-size', type=int, default=4096, help='Chunk size to read and transfer. KB')
   parser.add_argument('source_path', help='Source path')
   parser.add_argument('destination', help='Destination definition as hostname:path')
