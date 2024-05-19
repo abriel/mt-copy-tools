@@ -8,7 +8,7 @@ build_wheel:
 build_exe: wine_install_dependecies
 	wine pyinstaller --onefile --upx-dir "C:/upx" \
 	--add-binary "c:/windows/system32/bcrypt.dll;." \
-	-c -n mtput mt_copy_tools/mtput/__main__.py
+	-c -n mtscp mt_copy_tools/mtscp/__main__.py
 
 wine_install_dependecies:
 	wine C:/Python34/python.exe -m pip install -r requirements-win.txt

@@ -36,12 +36,31 @@ def parse_args():
   parser.add_argument('-t', '--threads', type=int, default=10, help='Number of threads')
   parser.add_argument('-d', '--start-delay', type=float, default=0.2, help='Delay of a thread start in seconds')
   parser.add_argument('-c', '--chunk-size', type=int, default=4096, help='Chunk size to read and transfer. KB')
-  parser.add_argument('source_path', help='Source path')
-  parser.add_argument('destination', help='Destination definition as hostname:path')
+  parser.add_argument('source', help='Source. Local file or remote in format [username@]<hostname>:<path>')
+  parser.add_argument('destination', help='Destination. Local file or remote in format [username@]<hostname>:<path>')
   args = parser.parse_args()
 
   args.chunk_size *= 1024
 
-  args.username, args.destination_host, args.destination_path = parse_remote_definition(args.destination)
+  if path.exists(args.source):
+    args.direction = 'upload'
+    args.username, args.remote_host, args.remote_path = parse_remote_definition(args.destination)
+    args.local_path = args.source
+    if args.remote_path.endswith('/') or args.remote_path == '':
+      args.remote_path = path.join(args.remote_path, path.basename(args.local_path))
+
+  elif path.exists(path.dirname(path.realpath(args.destination))):
+    args.direction = 'download'
+    args.username, args.remote_host, args.remote_path = parse_remote_definition(args.source)
+    args.local_path = args.destination
+    if path.isdir(args.local_path):
+      args.local_path = path.join(args.local_path, path.basename(args.remote_path))
+
+  else:
+    print(
+      "Neither {} nor {} exists locally".format(args.source, path.dirname(args.destination)),
+      file=sys.stderr
+    )
+    sys.exit(3)
 
   return args

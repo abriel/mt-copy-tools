@@ -2,7 +2,7 @@
 
 Upload / Download a file(s) to a remote using multiple connections at a time.
 
-`mtput` comes from the package does upload a given file.
+`mtscp` comes from the package does upload or download a given file.
 
 Supported remote protocols:
 * SFTP
@@ -16,14 +16,14 @@ Thus, leveraging multiple connections gives a good speed.
 Good example is a torrent, which makes a tens connections to different remotes and downloads a file by pieces.
 
 But what if you need to upload a huge file from your laptop to a backup server?
-That is when the `mtput` comes into the play.
+That is when the `mtscp` comes into the play.
 
 
 # SFTP Notes
 
 Using `proftpd` as a server (version >= 1.3.9) enables a resume feature.
 Proftpd provides a feature to calculate a hash sum for a file pieces on a server side and return to a client.
-Thus, `mtput` knows what parts are uploaded already and where to resume from.
+Thus, `mtscp` knows what parts are uploaded already and where to resume from.
 
 Proftpd related issues: [1570](https://github.com/proftpd/proftpd/issues/1570), [1569](https://github.com/proftpd/proftpd/issues/1569)
 
@@ -53,11 +53,10 @@ $ make wine_setup
 $ make build_exe
 ```
 
-Result binary is `dist/mtput.exe` which should work on Windows XP and newer
+Result binary is `dist/mtscp.exe` which should work on Windows XP and newer
 
 
 # Limitations
 
-* There is `mtput` only
-* Upload a single file only is supported
-* Only one remote protocol is supported
+* Upload / Download a single file only is supported
+* Only SFTP remote protocol is supported

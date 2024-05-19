@@ -57,6 +57,54 @@ def upload_part(sftp_client_fn, source_path, remote_path, start_position, length
 
   return len(buf)
 
+def download_part(sftp_client_fn, local_path, remote_path, start_position, length, algo=None):
+  sftp_client = sftp_client_fn(get_ident())
+
+  with sftp_client.open(remote_path, 'rb') as source_fd:
+
+    try:
+      try:
+        target_fd = open(local_path, 'r+b')
+      except FileNotFoundError:
+        target_fd = open(local_path, 'x+b')
+    except FileExistsError:
+      target_fd = open(local_path, 'r+b')
+    except OSError as e:
+      raise(e)
+
+    try:
+      if algo:
+        source_hash = source_fd.check_as_file(algo, start_position, length)
+
+        for retry in range(3):
+          target_fd.seek(start_position)
+          test_chunk = target_fd.read(length)
+          hash_mismatch = source_hash != getattr(hashlib, algo)(test_chunk).digest()
+
+          if hash_mismatch:
+            if retry < 2:
+              buf_length = copy_chunk(source_fd, target_fd, start_position, length)
+            else:
+              raise BufferError("Integrity check fails after multiple retries")
+          else:
+            buf_length = len(test_chunk)
+            break
+
+      else:
+        buf_length = copy_chunk(source_fd, target_fd, start_position, length)
+
+    finally:
+      target_fd.close()
+
+  return buf_length
+
+def copy_chunk(source_fd, target_fd, start_position, length):
+  source_fd.seek(start_position)
+  target_fd.seek(start_position)
+  buf = source_fd.read(length)
+  target_fd.write(buf)
+  return len(buf)
+
 def progress(future):
   progress.total_done += future.result()
 
@@ -82,7 +130,7 @@ def main():
 
   try:
     sys.stdout.write('Creating pool of {} connections\n'.format(args.threads))
-    sftp_client_pool = SftpClientPool(args.destination_host,
+    sftp_client_pool = SftpClientPool(args.remote_host,
                                       username=args.username, port=args.port, key=args.key,
                                       delay=args.start_delay, pool_size=args.threads)
   except Exception as e:
@@ -93,18 +141,24 @@ def main():
     sys.stderr.write('Server does not support {} for integrity check. Hence ignoring.\n'.format(args.algo))
     args.algo = None
 
-  sys.stdout.write('Starting upload...\n')
+  sys.stdout.write('Starting {}...\n'.format(args.direction))
 
   futures = []
   progress.total_done = 0
   progress.total_expected = 0
 
+  if args.direction == 'upload':
+    worker_func = upload_part
+    progress.total_expected = path.getsize(args.local_path)
+  else:
+    worker_func = download_part
+    progress.total_expected = sftp_client_pool.pop().stat(args.remote_path).st_size
+
   with ThreadPoolExecutor(max_workers=args.threads) as executor:
-    progress.total_expected += path.getsize(args.source_path)
     progress.start_time = datetime.now()
-    parts = ceil(path.getsize(args.source_path) / args.chunk_size)
+    parts = ceil(progress.total_expected / args.chunk_size)
     for i in range(parts):
-      future = executor.submit(upload_part, sftp_client_pool.sticky, args.source_path, args.destination_path,
+      future = executor.submit(worker_func, sftp_client_pool.sticky, args.local_path, args.remote_path,
                                i * args.chunk_size, args.chunk_size, algo=args.algo)
       future.add_done_callback(progress)
       futures.append(future)
