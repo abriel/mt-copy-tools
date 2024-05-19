@@ -5,7 +5,7 @@ description = "Multi-thread copy tools"
 authors = ["Dmitry Pisarev <sorra7@gmail.com>"]
 
 [tool.poetry.scripts]
-mtput = 'mt_copy_tools.mtput:main'
+mtscp = 'mt_copy_tools.mtscp:main'
 
 [tool.poetry.dependencies]
 python = ">=3.8,<3.12"
