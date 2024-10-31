@@ -116,8 +116,9 @@ def progress(future):
   estimated_time = timedelta(seconds=((progress.total_expected - progress.total_done) // speed))
 
   sys.stdout.write(
-    '\r{} % uploaded, {} KB/s, ELAPS {}, ETA {}'.format(
+    '\r{} % {}ed, {} KB/s, ELAPS {}, ETA {}'.format(
       round(progress.total_done / progress.total_expected * 100, 2),
+      progress.direction,
       round(speed / 1024, 2),
       str(elapsed_time).split('.')[0],
       estimated_time
@@ -146,6 +147,7 @@ def main():
   futures = []
   progress.total_done = 0
   progress.total_expected = 0
+  progress.direction = args.direction
 
   if args.direction == 'upload':
     worker_func = upload_part
